@@ -3,10 +3,10 @@ package backends
 import "context"
 
 type BackendSandbox interface {
-	Run(ctx context.Context, cfg RunConfig) error
-	Restart(ctx context.Context) error
-	Stop(ctx context.Context) error
-	Close(ctx context.Context) error
+	Run(ctx context.Context, cfg RunConfig) (err error)
+	Restart(ctx context.Context) (err error)
+	Stop(ctx context.Context) (err error)
+	Close(ctx context.Context) (err error)
 
 	Observer
 	Mouse
@@ -28,28 +28,28 @@ type Observer interface {
 }
 
 type Screenshot interface {
-	Screenshot(ctx context.Context) ([]byte, error)
-	ScreenSize(ctx context.Context) (int, int, error)
+	Screenshot(ctx context.Context) (data []byte, err error)
+	ScreenSize(ctx context.Context) (width int, height int, err error)
 }
 
 type Stream interface {
-	StartStream(ctx context.Context) error
-	StopStream(ctx context.Context) error
-	StreamURL() string
+	Start(ctx context.Context) (link string, err error)
+	Stop(ctx context.Context) (err error)
+	StreamURL() (link string)
 }
 
 type Mouse interface {
-	Click(ctx context.Context, p Point) error
-	DoubleClick(ctx context.Context, p Point, button MouseButton) error
-	MoveMouse(ctx context.Context, p Point) error
-	MouseDown(ctx context.Context, button MouseButton) error
-	MouseUp(ctx context.Context, button MouseButton) error
-	Scroll(ctx context.Context, p Point, dx, dy int) error
+	Click(ctx context.Context, p Point) (err error)
+	DoubleClick(ctx context.Context, p Point, button MouseButton) (err error)
+	MoveMouse(ctx context.Context, p Point) (err error)
+	MouseDown(ctx context.Context, button MouseButton) (err error)
+	MouseUp(ctx context.Context, button MouseButton) (err error)
+	Scroll(ctx context.Context, p Point, dx, dy int) (err error)
 }
 
 type Point struct{ X, Y int }
 
-type MouseButton int
+type MouseButton uint8
 
 const (
 	LeftButton MouseButton = iota + 1
@@ -58,17 +58,17 @@ const (
 )
 
 type Keyboard interface {
-	PressKey(ctx context.Context, key string) error
-	KeyDown(ctx context.Context, key string) error
-	KeyUp(ctx context.Context, key string) error
-	TypeText(ctx context.Context, text string) error
-	Hotkey(ctx context.Context, keys ...string) error
+	PressKey(ctx context.Context, key string) (err error)
+	KeyDown(ctx context.Context, key string) (err error)
+	KeyUp(ctx context.Context, key string) (err error)
+	TypeText(ctx context.Context, text string) (err error)
+	Hotkey(ctx context.Context, keys ...string) (err error)
 }
 
 type NetworkTunnel interface {
-	Connect(ctx context.Context, cfg TunnelConfig) error
-	Disconnect(ctx context.Context) error
-	Status(ctx context.Context) (TunnelStatus, error)
+	Connect(ctx context.Context, cfg TunnelConfig) (err error)
+	Disconnect(ctx context.Context) (err error)
+	Status(ctx context.Context) (status TunnelStatus, err error)
 }
 
 type TunnelConfig struct {
@@ -93,11 +93,11 @@ type DesktopConfig struct {
 type Terminal interface {
 	HasTerminal() bool
 
-	Exec(ctx context.Context, cmd Command) (*CommandResult, error)
-	WriteStdin(ctx context.Context, sessionID string, data []byte) error
-	ReadOutput(ctx context.Context, sessionID string) ([]byte, error)
-	Resize(ctx context.Context, sessionID string, cols, rows int) error
-	CloseSession(ctx context.Context, sessionID string) error
+	Exec(ctx context.Context, cmd Command) (result *CommandResult, err error)
+	WriteStdin(ctx context.Context, sessionID string, data []byte) (err error)
+	ReadOutput(ctx context.Context, sessionID string) (data []byte, err error)
+	Resize(ctx context.Context, sessionID string, cols, rows int) (err error)
+	CloseSession(ctx context.Context, sessionID string) (err error)
 }
 
 type Command struct {
