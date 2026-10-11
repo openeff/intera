@@ -1,0 +1,27 @@
+FROM {{.BaseImage}}
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN dpkg --add-architecture i386 \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+    wine wine64 wine32 \
+    ca-certificates file \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN useradd --create-home --uid 10001 runner \
+    && mkdir -p /workspace/deps \
+    && chown -R runner:runner /workspace
+
+WORKDIR /workspace
+
+COPY workspace/ /workspace/
+
+RUN chmod -R a+rX /workspace
+
+ENV HOME=/home/runner
+ENV WINEPREFIX=/home/runner/.wine
+
+USER runner
+
+ENTRYPOINT ["/bin/bash", "/workspace/run.sh"]

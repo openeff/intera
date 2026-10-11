@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -eu
+
+export DISPLAY="${{.Display}}"
+
+# Create a virtual screen
+Xvfb "$DISPLAY" -screen 0 {{.Width}}x{{.Height}}x{{.ColorDepth}} \
+    -ac -nolisten tcp &
+XVFB_PID=$!
+
+# Start window manager
+{{.WindowManager}} &
+WM_PID=$!
+
+# Wait for X server
+for i in $(seq 1 50); do
+    if xdpyinfo -display "$DISPLAY" >/dev/null 2>&1; then
+        break
+    fi
+    sleep 0.1
+done
+
+# Start application
+"$@" &
+APP_PID=$!
+
+cleanup() {
+    kill "$APP_PID" "$WM_PID" "$XVFB_PID" 2>/dev/null || true
+}
+
+trap cleanup EXIT INT TERM
+
+wait "$APP_PID"
